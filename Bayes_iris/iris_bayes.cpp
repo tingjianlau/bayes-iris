@@ -46,8 +46,8 @@ static void determinant(double s[4][4], double& det);
 static IRISSample iris[SampleNum];
 
 // 統計參數
-static double m[ClassNum][FeatureVectorSize];
-static double C[ClassNum][FeatureVectorSize][FeatureVectorSize];
+static double m[ClassNum][FeatureVectorSize]; // 统计样本各个类的每个特征的平均值
+static double C[ClassNum][FeatureVectorSize][FeatureVectorSize]; // 统计样本各个类的各队特征值间的方差
 
 // CI: C 的反矩陣
 static double CI[ClassNum][FeatureVectorSize][FeatureVectorSize];
@@ -125,16 +125,16 @@ void leave_one_out_test()
 	// 正確辨識的樣本數先清為零
 	correct = 0;
 
+	// 估計所有類別的 mean 與 covariance，並計算 covariance 的 inverse 與 determinant
+	estimate();
+	inverse(C[0], CI[0]);
+	inverse(C[1], CI[1]);
+	inverse(C[2], CI[2]);
+	determinant(C[0], dd[0]);
+	determinant(C[1], dd[1]);
+	determinant(C[2], dd[2]);
 	// ci=0 (Setosa), ci=1 (Versicolor), ci=2 (Virginica)
 	for (ci = 0; ci <= 2; ci++) {
-		// 估計所有類別的 mean 與 covariance，並計算 covariance 的 inverse 與 determinant
-		estimate();
-		inverse(C[0], CI[0]);
-		inverse(C[1], CI[1]);
-		inverse(C[2], CI[2]);
-		determinant(C[0], dd[0]);
-		determinant(C[1], dd[1]);
-		determinant(C[2], dd[2]);
 		// 辨識 ci 類別的每一個樣本
 		for (i = idx1[ci]; i <= idx2[ci]; i++) {
 			printf("%3d ", i);
@@ -243,7 +243,7 @@ void estimate_covariance_matrix()
 				dv = (iris[i].fv[v] - m[0][v]);
 				s += (du * dv);
 			}
-			C[0][u][v] = s / 49.0;
+			C[0][u][v] = s / 49.0; //协方差
 		}
 	}
 
@@ -381,13 +381,13 @@ void bayes_classifier(int idx, char label[16])
 			}
 		}
 		// dm : (v - m)^t * CI * (v - m)
-		// dm 就是所謂的 Mahalanobis Distance
+		// dm 就是所謂的 Mahalanobis Distance 马氏距离
 		dm[ci] = 0.0;
 		for (i = 0; i <= FeatureVectorSize - 1; i++) {
 			dm[ci] += t[i] * x[i];
 		}
 		// g : discriminant function
-		g[ci] = -0.5 * dm[ci] - log(sqrt(dd[ci]));
+		g[ci] = -0.5 * dm[ci] - log(sqrt(dd[ci])); //核心：判别函数
 		printf(" g[%d] = %12.6f", ci, g[ci]);
 	}
 
