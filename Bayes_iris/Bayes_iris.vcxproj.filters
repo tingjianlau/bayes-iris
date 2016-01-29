@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="iris_bayes.cpp">
+    <ClCompile Include="my_bayes.c">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
